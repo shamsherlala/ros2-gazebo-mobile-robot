@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- PROPERTIES: change numbers here only -->
+  <xacro:property name="base_z" value="0.1"/>          <!-- body center above ground -->
+  <xacro:property name="wheel_radius" value="0.07"/>
+  <xacro:property name="wheel_length" value="0.04"/>
+  <xacro:property name="wheel_mass" value="0.2"/>
+  <xacro:property name="wheel_x" value="-0.1"/>        <!-- wheels at the back -->
+  <xacro:property name="wheel_y" value="0.17"/>        <!-- half of the track width -->
+
+  <!-- ROOT: empty point on the ground, under the robot center -->
+  <link name="base_footprint"/>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${base_z}"/>
+  </joint>
+
+  <!-- BODY: a box 0.4 m long, 0.3 m wide, 0.1 m high -->
+  <link name="base_link">
+    <visual>
+      <geometry><box size="0.4 0.3 0.1"/></geometry>
+      <material name="blue"><color rgba="0.2 0.3 0.8 1"/></material>
+    </visual>
+    <collision>
+      <geometry><box size="0.4 0.3 0.1"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0"/>
+      <inertia ixx="0.0167" ixy="0" ixz="0" iyy="0.0283" iyz="0" izz="0.0417"/>
+    </inertial>
+  </link>
+
+  <!-- WHEEL MACRO: one definition, used twice -->
+  <xacro:macro name="wheel" params="prefix y_sign">
+    <link name="${prefix}_wheel">
+      <visual>
+        <origin rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_length}"/></geometry>
+        <material name="black"><color rgba="0.1 0.1 0.1 1"/></material>
+      </visual>
+      <collision>
+        <origin rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_length}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${wheel_mass / 12 * (3 * wheel_radius**2 + wheel_length**2)}" ixy="0" ixz="0"
+                 iyy="${wheel_mass / 12 * (3 * wheel_radius**2 + wheel_length**2)}" iyz="0"
+                 izz="${wheel_mass / 2 * wheel_radius**2}"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel"/>
+      <origin xyz="${wheel_x} ${y_sign * wheel_y} ${wheel_radius - base_z}"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:wheel prefix="left" y_sign="1"/>
+  <xacro:wheel prefix="right" y_sign="-1"/>
+
+  <!-- CASTER: small ball at the front, does not rotate (fixed) -->
+  <link name="caster">
+    <visual>
+      <geometry><sphere radius="0.025"/></geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry><sphere radius="0.025"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.000025" ixy="0" ixz="0" iyy="0.000025" iyz="0" izz="0.000025"/>
+    </inertial>
+  </link>
+
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster"/>
+    <origin xyz="0.15 0 -0.075"/>
+  </joint>
+
+  <!-- LIDAR: small cylinder on top of the body -->
+  <link name="lidar_link">
+    <visual>
+      <geometry><cylinder radius="0.03" length="0.04"/></geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.03" length="0.04"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+  </link>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.1 0 0.07"/>
+  </joint>
+
+  <gazebo reference="lidar_link">
+    <sensor name="lidar" type="gpu_lidar">
+      <topic>/scan</topic>
+      <gz_frame_id>lidar_link</gz_frame_id>
+      <update_rate>10</update_rate>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <min_angle>-3.14159</min_angle>
+            <max_angle>3.14159</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.12</min>
+          <max>8.0</max>
+        </range>
+      </lidar>
+    </sensor>
+  </gazebo>
+
+  <!-- CAMERA: small box at the front -->
+  <link name="camera_link">
+    <visual>
+      <geometry><box size="0.02 0.05 0.03"/></geometry>
+      <material name="black"/>
+    </visual>
+    <inertial>
+      <mass value="0.02"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+    </inertial>
+  </link>
+
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.21 0 0.03"/>
+  </joint>
+
+  <gazebo reference="camera_link">
+    <sensor name="camera" type="camera">
+      <topic>/camera/image_raw</topic>
+      <gz_frame_id>camera_link</gz_frame_id>
+      <update_rate>15</update_rate>
+      <always_on>true</always_on>
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image><width>320</width><height>240</height></image>
+        <clip><near>0.05</near><far>10</far></clip>
+      </camera>
+    </sensor>
+  </gazebo>
+
+  <!-- GAZEBO: no friction on the caster ball -->
+  <gazebo reference="caster">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+  </gazebo>
+
+  <!-- GAZEBO: motor controller for the two wheels -->
+  <gazebo>
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+      <wheel_separation>${2 * wheel_y}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <topic>/cmd_vel</topic>
+      <odom_topic>/odom</odom_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+      <odom_publish_frequency>30</odom_publish_frequency>
+      <tf_topic>/tf</tf_topic>
+    </plugin>
+
+    <!-- reports wheel angles, so RViz can show them spinning -->
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>/joint_states</topic>
+    </plugin>
+  </gazebo>
+
+</robot>

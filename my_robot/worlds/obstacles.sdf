@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+  <world name="obstacles">
+
+    <!-- core systems: physics, GUI commands, scene updates, SENSORS -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>50 50</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>50 50</size></plane></geometry>
+          <material><diffuse>0.8 0.8 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- OBSTACLES -->
+    <model name="box_front">
+      <static>true</static>
+      <pose>2.0 0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <material><diffuse>0.8 0.2 0.2 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="wall_left">
+      <static>true</static>
+      <pose>0 2.0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>3.0 0.2 0.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>3.0 0.2 0.5</size></box></geometry>
+          <material><diffuse>0.2 0.6 0.2 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="pillar">
+      <static>true</static>
+      <pose>-1.5 -1.0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><cylinder><radius>0.2</radius><length>0.5</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.2</radius><length>0.5</length></cylinder></geometry>
+          <material><diffuse>0.2 0.2 0.8 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ARENA: 8 x 8 m walls around everything -->
+    <model name="arena_north">
+      <static>true</static>
+      <pose>4.0 0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 8.2 0.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.2 8.2 0.5</size></box></geometry>
+          <material><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="arena_south">
+      <static>true</static>
+      <pose>-4.0 0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 8.2 0.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.2 8.2 0.5</size></box></geometry>
+          <material><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="arena_east">
+      <static>true</static>
+      <pose>0 -4.0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>8.2 0.2 0.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>8.2 0.2 0.5</size></box></geometry>
+          <material><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="arena_west">
+      <static>true</static>
+      <pose>0 4.0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>8.2 0.2 0.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>8.2 0.2 0.5</size></box></geometry>
+          <material><diffuse>0.5 0.5 0.5 1</diffuse></material></visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
